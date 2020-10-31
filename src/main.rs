@@ -4,6 +4,7 @@ extern crate rocket;
 
 use rocket::request::Form;
 use rocket::response::content::Json;
+use rocket::Request;
 
 #[derive(FromForm, Debug)]
 struct Book {
@@ -28,8 +29,14 @@ fn new_book(book_form: Form<Book>) -> String {
   format!("Book added successfully: {:?}", dummy_db)
 }
 
+#[catch(404)]
+fn not_found(req: &Request) -> String {
+  format!("Oh no! We couldn't find the requested path '{}'", req.uri())
+}
+
 fn main() {
   rocket::ignite()
-    .mount("/api", routes![hello])
+    .register(catchers![not_found])
+    .mount("/api", routes![hello, new_book])
     .launch();
 }

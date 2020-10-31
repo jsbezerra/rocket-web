@@ -5,12 +5,29 @@ extern crate rocket;
 use rocket::request::Form;
 use rocket::response::content::Json;
 use rocket::Request;
+use rocket_contrib::templates::Template;
+use serde::Serialize;
 
 #[derive(FromForm, Debug)]
 struct Book {
   title: String,
   author: String,
   isbn: String,
+}
+
+#[derive(Serialize)]
+struct Context {
+  first_name: String,
+  last_name: String
+}
+
+#[get("/")]
+fn index() -> Template {
+  let context = Context {
+    first_name: String::from("Jonas"),
+    last_name: String::from("Bezerra")
+  };
+  Template::render("home", context)
 }
 
 #[get("/hello")]
@@ -37,6 +54,8 @@ fn not_found(req: &Request) -> String {
 fn main() {
   rocket::ignite()
     .register(catchers![not_found])
+    .mount("/", routes![index])
     .mount("/api", routes![hello, new_book])
+    .attach(Template::fairing())
     .launch();
 }
